@@ -136,6 +136,7 @@
     <Compile Include="SpriteSheet.cs" />
     <Compile Include="JsonTimersFile.cs" />
     <Compile Include="MMDeviceAPI.cs" />
+    <Compile Include="Wave.cs" />
     <Compile Include="Win32.cs" />
     <EmbeddedResource Include="MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
@@ -181,9 +182,6 @@
   </ItemGroup>
   <ItemGroup>
     <Service Include="{508349B6-6B84-4DF5-91F0-309BEEBAD82D}" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Resources\SDL2.dll" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

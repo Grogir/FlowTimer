@@ -73,7 +73,8 @@ namespace FlowTimer {
             PinSheet = new SpriteSheet(new Bitmap(FileSystem.ReadPackedResourceStream("FlowTimer.Resources.pin.png")), 16, 16);
             Pin(Settings.Pinned);
 
-            AudioContext.GlobalInit();
+            AudioContext = new AudioContext();
+            AudioContext.StartAudioThread();
             ChangeBeepSound(Settings.Beep, false);
 
             TimerUpdateThread = new Thread(TimerUpdateCallback);
@@ -107,7 +108,6 @@ namespace FlowTimer {
             TimerUpdateThread.AbortIfAlive();
             AudioContext.ClearQueuedAudio();
             AudioContext.Destroy();
-            AudioContext.GlobalDestroy();
             File.WriteAllText(SettingsFile, JsonConvert.SerializeObject(Settings));
         }
 
@@ -230,11 +230,11 @@ namespace FlowTimer {
             if(garbageCollect) GC.Collect();
             double maxOffset = offsets.Max();
 
-            PCM = new byte[((int) Math.Ceiling(maxOffset / 1000.0 * AudioContext.SampleRate)) * AudioContext.NumChannels * AudioContext.BytesPerSample + BeepSound.Length];
+            PCM = new byte[((int) Math.Ceiling(maxOffset / 1000.0 * AudioContext.Format.nSamplesPerSec)) * AudioContext.BytesPerSample + BeepSound.Length];
 
             foreach(double offset in offsets) {
                 for(int i = 0; i < numBeeps; i++) {
-                    int destOffset = (int) ((offset - i * interval) / 1000.0 * AudioContext.SampleRate) * AudioContext.NumChannels * 2;
+                    int destOffset = (int) ((offset - i * interval) / 1000.0 * AudioContext.Format.nSamplesPerSec) * AudioContext.BytesPerSample;
                     Array.Copy(BeepSound, 0, PCM, destOffset, BeepSound.Length);
                 }
             }
@@ -327,15 +327,15 @@ namespace FlowTimer {
                 return false;
             }
 
-            SDL_AudioSpec audioSpec;
-            Wave.LoadWAV(filePath, out _, out audioSpec);
+            // TODO: Audio spec check
+            /*Wave.LoadWAV(filePath, out _, out audioSpec);
 
             if(audioSpec.format != AUDIO_S16LSB) {
                 if(displayMessages) {
                     MessageBox.Show("FlowTimer does not support this audio file (yet).", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                 }
                 return false;
-            }
+            }*/
 
             File.Copy(filePath, Beeps + fileName);
             if(SettingsForm != null) SettingsForm.ComboBoxBeep.Items.Add(fileNameWithoutExtension);
@@ -344,11 +344,8 @@ namespace FlowTimer {
         }
 
         public static void ChangeBeepSound(string beepName, bool playSound = true) {
-            if(AudioContext != null) AudioContext.Destroy();
-
-            SDL_AudioSpec audioSpec;
-            Wave.LoadWAV(Beeps + beepName + ".wav", out BeepSoundUnadjusted, out audioSpec);
-            AudioContext = new AudioContext(audioSpec.freq, audioSpec.format, audioSpec.channels);
+            Wave.LoadWAV(Beeps + beepName + ".wav", out BeepSoundUnadjusted);
+            BeepSoundUnadjusted = AudioContext.ToNativeFormat(BeepSoundUnadjusted);
             AdjustBeepSoundVolume(Settings.Volume);
             CurrentTab.OnBeepSoundChange();
             Settings.Beep = beepName;

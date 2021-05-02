@@ -13,7 +13,6 @@ namespace FlowTimer {
         static void Main() {
             FileSystem.Init();
             FileSystem.UnpackAllFileExtensions("wav", FlowTimer.Beeps);
-            FileSystem.Unpack("SDL2.dll", FlowTimer.Folder + "SDL2.dll");
             Win32.SetDllDirectory(FlowTimer.Folder);
 
             Application.EnableVisualStyles();
