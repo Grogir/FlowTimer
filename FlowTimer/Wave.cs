@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Runtime.InteropServices;
+using static FlowTimer.MMDeviceAPI;
 
 namespace FlowTimer {
 
@@ -32,16 +33,17 @@ namespace FlowTimer {
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         private struct WaveFmt {
 
-            public ushort FormatTag;
-            public ushort Channels;
-            public uint SampleRate;
-            public uint AvgBytesPerSec;
-            public ushort BlockAlign;
-            public ushort BitsPerSample;
+            public short FormatTag;
+            public short Channels;
+            public int SampleRate;
+            public int AvgBytesPerSec;
+            public short BlockAlign;
+            public short BitsPerSample;
         }
 
-        public static bool LoadWAV(string fileName, out byte[] pcm) {
+        public static bool LoadWAV(string fileName, out byte[] pcm, out WAVEFORMATEX format) {
             pcm = new byte[0];
+            format = default;
 
             byte[] bytes = File.ReadAllBytes(fileName);
             int pointer = 0;
@@ -55,6 +57,15 @@ namespace FlowTimer {
 
                 if(chunkHeader.Id == WaveId_fmt) {
                     WaveFmt fmt = bytes.ReadStruct<WaveFmt>(pointer);
+                    format = new WAVEFORMATEX {
+                        cbSize = (short) Marshal.SizeOf<WAVEFORMATEX>(),
+                        wFormatTag = WAVE_FORMAT_PCM,
+                        nAvgBytesPerSec = fmt.AvgBytesPerSec,
+                        nBlockAlign = fmt.BlockAlign,
+                        nChannels = fmt.Channels,
+                        nSamplesPerSec = fmt.SampleRate,
+                        wBitsPerSample = fmt.BitsPerSample,
+                    };
                 } else if(chunkHeader.Id == WaveId_data) {
                     pcm = bytes.Subarray(pointer, (int) chunkHeader.Size);
                 }

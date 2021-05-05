@@ -10,7 +10,6 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using static FlowTimer.Win32;
-using static FlowTimer.SDL;
 
 namespace FlowTimer {
 
@@ -279,7 +278,7 @@ namespace FlowTimer {
         private static void TimerUpdateCallback() {
             Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-            const uint resolution = 15;
+            const int resolution = 15;
 
             MethodInvoker inv;
             double currentTime = 0.0f;
@@ -291,7 +290,7 @@ namespace FlowTimer {
                 };
                 MainForm.Invoke(inv);
 
-                SDL_Delay(resolution);
+                Thread.Sleep(resolution);
             } while(currentTime > 0.0);
 
             inv = delegate {
@@ -344,8 +343,8 @@ namespace FlowTimer {
         }
 
         public static void ChangeBeepSound(string beepName, bool playSound = true) {
-            Wave.LoadWAV(Beeps + beepName + ".wav", out BeepSoundUnadjusted);
-            BeepSoundUnadjusted = AudioContext.ToNativeFormat(BeepSoundUnadjusted);
+            Wave.LoadWAV(Beeps + beepName + ".wav", out BeepSoundUnadjusted, out WAVEFORMATEX format);
+            BeepSoundUnadjusted = AudioContext.ToNativeFormat(BeepSoundUnadjusted, format);
             AdjustBeepSoundVolume(Settings.Volume);
             CurrentTab.OnBeepSoundChange();
             Settings.Beep = beepName;
