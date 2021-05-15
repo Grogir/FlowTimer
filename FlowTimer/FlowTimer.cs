@@ -10,6 +10,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using System.Reflection;
 using static FlowTimer.Win32;
+using static FlowTimer.MMDeviceAPI;
 
 namespace FlowTimer {
 
@@ -344,7 +345,7 @@ namespace FlowTimer {
 
         public static void ChangeBeepSound(string beepName, bool playSound = true) {
             Wave.LoadWAV(Beeps + beepName + ".wav", out BeepSoundUnadjusted, out WAVEFORMATEX format);
-            BeepSoundUnadjusted = AudioContext.ToNativeFormat(BeepSoundUnadjusted, format);
+            BeepSoundUnadjusted = AudioContext.ResamplePCM(BeepSoundUnadjusted, format);
             AdjustBeepSoundVolume(Settings.Volume);
             CurrentTab.OnBeepSoundChange();
             Settings.Beep = beepName;
@@ -357,6 +358,7 @@ namespace FlowTimer {
         public static void AdjustBeepSoundVolume(int newVolume) {
             float vol = newVolume / 100.0f;
             BeepSound = new byte[BeepSoundUnadjusted.Length];
+
             for(int i = 0; i < BeepSound.Length; i += 2) {
                 short sample = (short) (BeepSoundUnadjusted[i] | (BeepSoundUnadjusted[i + 1] << 8));
                 float floatSample = sample;
@@ -369,6 +371,23 @@ namespace FlowTimer {
                 sample = (short) floatSample;
                 BeepSound[i] = (byte) (sample & 0xFF);
                 BeepSound[i + 1] = (byte) (sample >> 8);
+            }
+              
+            if(AudioContext.Format.wFormatTag == WAVE_FORMAT_IEEE_FLOAT || AudioContext.ExtensibleFormatTag == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) {
+                byte[] ieee = new byte[BeepSound.Length * 2];   
+                for(int i = 0; i < BeepSound.Length; i += 2) {
+                    short shortSample = (short) (BeepSound[i] | (BeepSound[i + 1] << 8));
+                    float floatSample = (float) shortSample / (float) short.MaxValue;
+                    if(floatSample < -1) floatSample = -1;
+                    if(floatSample > 1) floatSample = 1;
+                    byte[] bytes = BitConverter.GetBytes(floatSample);
+                    ieee[i * 2 + 0] = bytes[0];
+                    ieee[i * 2 + 1] = bytes[1];
+                    ieee[i * 2 + 2] = bytes[2];
+                    ieee[i * 2 + 3] = bytes[3];
+                }
+
+                BeepSound = ieee;
             }
 
             CurrentTab.OnBeepVolumeChange();

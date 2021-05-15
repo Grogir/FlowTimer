@@ -119,31 +119,6 @@ namespace FlowTimer {
             AudioBufferPosition += length;
         }
 
-        public byte[] ToNativeFormat(byte[] pcm, WAVEFORMATEX format) {
-            pcm = ResamplePCM(pcm, format);
-
-            // TODO: Unsure if this covers all platforms.
-            if(Format.wFormatTag == WAVE_FORMAT_IEEE_FLOAT || ExtensibleFormatTag == KSDATAFORMAT_SUBTYPE_IEEE_FLOAT) {
-                // TODO: Maybe not assume 32bit?
-                byte[] ret = new byte[pcm.Length * 2];
-                for(int i = 0; i < pcm.Length; i += 2) {
-                    short shortSample = (short) (pcm[i] | (pcm[i + 1] << 8));
-                    float floatSample = (float) shortSample / (float) short.MaxValue;
-                    if(floatSample < -1) floatSample = -1;
-                    if(floatSample > 1) floatSample = 1;
-                    byte[] bytes = BitConverter.GetBytes(floatSample);
-                    ret[i * 2 + 0] = bytes[0];
-                    ret[i * 2 + 1] = bytes[1];
-                    ret[i * 2 + 2] = bytes[2];
-                    ret[i * 2 + 3] = bytes[3];
-                }
-
-                return ret;
-            }
-
-            return pcm;
-        }
-
         public byte[] ResamplePCM(byte[] pcm, WAVEFORMATEX pcmFormat) {
             if(Resampler == null) return pcm; // Error?
 
