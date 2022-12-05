@@ -211,7 +211,7 @@ namespace FlowTimer {
         }
 
         public static void EnableControls(bool enabled) {
-            MainForm.ButtonSettings.Enabled = enabled;
+            //MainForm.ButtonSettings.Enabled = enabled;
         }
 
         public static void TogglePin() {
@@ -279,7 +279,7 @@ namespace FlowTimer {
         private static void TimerUpdateCallback() {
             Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
             Thread.CurrentThread.CurrentUICulture = System.Globalization.CultureInfo.InvariantCulture;
-            const int resolution = 15;
+            const int resolution = 50;
 
             MethodInvoker inv;
             double currentTime = 0.0f;

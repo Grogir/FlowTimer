@@ -78,14 +78,14 @@ namespace FlowTimer {
         }
 
         public void EnableControls(bool enabled) {
-            foreach(Timer timer in Timers) {
-                Control[] excluded = { timer.RadioButton, };
-                timer.Controls.Except(excluded).ToList().ForEach(control => control.Enabled = enabled);
-            }
+            //foreach(Timer timer in Timers) {
+            //    Control[] excluded = { timer.RadioButton, };
+            //    timer.Controls.Except(excluded).ToList().ForEach(control => control.Enabled = enabled);
+            //}
 
-            ButtonAdd.Enabled = enabled;
-            ButtonLoadTimers.Enabled = enabled;
-            ButtonSaveTimers.Enabled = enabled;
+            //ButtonAdd.Enabled = enabled;
+            //ButtonLoadTimers.Enabled = enabled;
+            //ButtonSaveTimers.Enabled = enabled;
         }
 
         public void AddTimer() {
